@@ -129,18 +129,6 @@
     </footer>
 
     <script>
-        // Cache leeren und Seite neu laden
-        if ('serviceWorker' in navigator) {
-            caches.keys().then(function(names) {
-                for (let name of names) caches.delete(name);
-            });
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for (let registration of registrations) {
-                    registration.unregister();
-                }
-            });
-        }
-
         // Funktion zum Leeren des Caches und vollständigen Neuladen der Seite
         function clearCacheAndReload() {
             if ('caches' in window) {
@@ -154,10 +142,11 @@
             }
         }
 
-        // Beim Laden der Seite den Cache leeren und die Seite neu laden
-        window.addEventListener('load', function() {
+        // Beim Laden der Seite den Cache leeren und die Seite neu laden, aber nur einmal
+        if (!sessionStorage.getItem('cacheCleared')) {
             clearCacheAndReload();
-        });
+            sessionStorage.setItem('cacheCleared', 'true');
+        }
 
         document.addEventListener("DOMContentLoaded", function() {
             if ('serviceWorker' in navigator) {
