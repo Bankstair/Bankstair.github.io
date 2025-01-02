@@ -145,7 +145,8 @@
             }
 
             let currentStream;
-            const html5QrCode = new Html5Qrcode("reader", { experimentalFeatures: { useBarCodeDetectorIfSupported: true } });
+            let lastScannedTime = 0;
+            const html5QrCode = new Html5Qrcode("reader");
 
             function stopMediaTracks(stream) {
                 stream.getTracks().forEach(track => {
@@ -188,8 +189,12 @@
                                                 qrbox: { width: 250, height: 250 }  // scanning box size
                                             },
                                             qrCodeMessage => {
-                                                console.log(`QR Code detected: ${qrCodeMessage}`);
-                                                window.location.href = qrCodeMessage;
+                                                const currentTime = new Date().getTime();
+                                                if (currentTime - lastScannedTime > 3000) { // 3 Sekunden
+                                                    console.log(`QR Code detected: ${qrCodeMessage}`);
+                                                    window.location.href = qrCodeMessage;
+                                                    lastScannedTime = currentTime;
+                                                }
                                             },
                                             errorMessage => {
                                                 console.warn(`QR Code no longer in front of camera.`);
