@@ -94,6 +94,10 @@
             align-self: flex-end; /* Rechtsbündig */
         }
 
+        #qr-status {
+            background-color: #FF0000; /* Hintergrundfarbe rot */
+        }
+
         /* Media Queries für mobile Ansicht */
         @media (max-width: 600px) {
             body {
@@ -224,9 +228,10 @@
                             },
                             qrCodeMessage => {
                                 const currentTime = new Date().getTime();
+                                console.log(`QR Code detected: ${qrCodeMessage}`);
                                 if (currentTime - lastScannedTime > 3000) { // 3 Sekunden
-                                    console.log(`QR Code detected: ${qrCodeMessage}`);
                                     document.getElementById('qr-status').innerText = "QR Code erkannt!";
+                                    document.getElementById('qr-status').style.backgroundColor = "#4CAF50"; // Hintergrundfarbe grün
                                     openSpotifyApp(qrCodeMessage);
                                     lastScannedTime = currentTime;
                                 }
@@ -234,6 +239,7 @@
                             errorMessage => {
                                 console.warn(`QR Code no longer in front of camera.`);
                                 document.getElementById('qr-status').innerText = "Kein QR Code erkannt.";
+                                document.getElementById('qr-status').style.backgroundColor = "#FF0000"; // Hintergrundfarbe rot
                             })
                             .catch(err => {
                                 console.error(`Unable to start QR code scanning, error: ${err}`);
