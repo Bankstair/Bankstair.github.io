@@ -13,18 +13,21 @@
             background-color: #c5c3c3;
             font-size: 0.9rem; /* Schriftgröße etwas kleiner */
         }
+
         header {
             background-color: #727272;
             color: rgb(255, 255, 255);
             padding: 0.5rem;
             text-align: center;
         }
+
         main {
             padding: 2rem;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
+
         footer {
             background-color: #868686;
             color: rgb(255, 255, 255);
@@ -97,7 +100,7 @@
                 document.getElementById('camera-selection').style.display = 'block';
                 console.log("Starting QR scanner...");
 
-                Html5Qrcode.getCameras().then(cameras => {
+                Html5qrcode.getCameras().then(cameras => {
                     if (cameras && cameras.length) {
                         const cameraSelection = document.getElementById('camera-selection');
                         cameras.forEach(camera => {
@@ -109,9 +112,9 @@
 
                         cameraSelection.addEventListener('change', function() {
                             const selectedCameraId = cameraSelection.value;
-                            const html5QrCode = new Html5QrCode("qr-reader");
+                            const html5qrCode = new Html5qrCode("qr-reader");
                             console.log(`Starting camera with ID: ${selectedCameraId}`);
-                            html5QrCode.start(
+                            html5qrCode.start(
                                 { deviceId: { exact: selectedCameraId } },
                                 {
                                     fps: 10,    // Optional, frame per seconds for qr code scanning
@@ -135,7 +138,7 @@
             });
 
             // Debugging: Check if the library is loaded
-            if (typeof Html5Qrcode !== 'undefined') {
+            if (typeof Html5qrcode !== 'undefined') {
                 console.log("html5-qrcode library loaded successfully.");
             } else {
                 console.error("html5-qrcode library failed to load.");
