@@ -72,74 +72,75 @@
     </footer>
 
     <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/service-worker.js')
-                .then(function(registration) {
-                    console.log('Service Worker registered with scope:', registration.scope);
-                }).catch(function(error) {
-                    console.log('Service Worker registration failed:', error);
-                });
-        }
-
-        function onScanSuccess(decodedText, decodedResult) {
-            // Handle the result here
-            document.getElementById('qr-reader-results').innerText = `Scanned result: ${decodedText}`;
-        }
-
-        function onScanFailure(error) {
-            // Handle scan failure, usually better to ignore and keep scanning.
-            console.warn(`QR error = ${error}`);
-        }
-
-        document.getElementById('start-qr-scanner').addEventListener('click', function() {
-            document.getElementById('qr-reader').style.display = 'block';
-            document.getElementById('camera-selection').style.display = 'block';
-            console.log("Starting QR scanner...");
-
-            Html5Qrcode.getCameras().then(cameras => {
-                if (cameras && cameras.length) {
-                    const cameraSelection = document.getElementById('camera-selection');
-                    cameras.forEach(camera => {
-                        const option = document.createElement('option');
-                        option.value = camera.id;
-                        option.text = camera.label;
-                        cameraSelection.appendChild(option);
+        document.addEventListener("DOMContentLoaded", function() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(function(registration) {
+                        console.log('Service Worker registered with scope:', registration.scope);
+                    }).catch(function(error) {
+                        console.log('Service Worker registration failed:', error);
                     });
+            }
 
-                    cameraSelection.addEventListener('change', function() {
-                        const selectedCameraId = cameraSelection.value;
-                        const html5QrCode = new Html5Qrcode("qr-reader");
-                        console.log(`Starting camera with ID: ${selectedCameraId}`);
-                        html5QrCode.start(
-                            { deviceId: { exact: selectedCameraId } },
-                            {
-                                fps: 10,    // Optional, frame per seconds for qr code scanning
-                                qrbox: { width: 250, height: 250 },  // Optional, if you want bounded box UI
-                                facingMode: "environment"  // Prefer the back camera
-                            },
-                            onScanSuccess,
-                            onScanFailure
-                        ).catch(err => {
-                            console.error(`Unable to start scanning, error: ${err}`);
+            function onScanSuccess(decodedText, decodedResult) {
+                // Handle the result here
+                document.getElementById('qr-reader-results').innerText = `Scanned result: ${decodedText}`;
+            }
+
+            function onScanFailure(error) {
+                // Handle scan failure, usually better to ignore and keep scanning.
+                console.warn(`QR error = ${error}`);
+            }
+
+            document.getElementById('start-qr-scanner').addEventListener('click', function() {
+                document.getElementById('qr-reader').style.display = 'block';
+                document.getElementById('camera-selection').style.display = 'block';
+                console.log("Starting QR scanner...");
+
+                Html5Qrcode.getCameras().then(cameras => {
+                    if (cameras && cameras.length) {
+                        const cameraSelection = document.getElementById('camera-selection');
+                        cameras.forEach(camera => {
+                            const option = document.createElement('option');
+                            option.value = camera.id;
+                            option.text = camera.label;
+                            cameraSelection.appendChild(option);
                         });
-                    });
 
-                    // Trigger change event to start with the first camera
-                    cameraSelection.dispatchEvent(new Event('change'));
-                } else {
-                    console.error("No cameras found.");
-                }
-            }).catch(err => {
-                console.error(`Error getting cameras: ${err}`);
+                        cameraSelection.addEventListener('change', function() {
+                            const selectedCameraId = cameraSelection.value;
+                            const html5QrCode = new Html5QrCode("qr-reader");
+                            console.log(`Starting camera with ID: ${selectedCameraId}`);
+                            html5QrCode.start(
+                                { deviceId: { exact: selectedCameraId } },
+                                {
+                                    fps: 10,    // Optional, frame per seconds for qr code scanning
+                                    qrbox: { width: 250, height: 250 }  // Optional, if you want bounded box UI
+                                },
+                                onScanSuccess,
+                                onScanFailure
+                            ).catch(err => {
+                                console.error(`Unable to start scanning, error: ${err}`);
+                            });
+                        });
+
+                        // Trigger change event to start with the first camera
+                        cameraSelection.dispatchEvent(new Event('change'));
+                    } else {
+                        console.error("No cameras found.");
+                    }
+                }).catch(err => {
+                    console.error(`Error getting cameras: ${err}`);
+                });
             });
-        });
 
-        // Debugging: Check if the library is loaded
-        if (typeof Html5Qrcode !== 'undefined') {
-            console.log("html5-qrcode library loaded successfully.");
-        } else {
-            console.error("html5-qrcode library failed to load.");
-        }
+            // Debugging: Check if the library is loaded
+            if (typeof Html5Qrcode !== 'undefined') {
+                console.log("html5-qrcode library loaded successfully.");
+            } else {
+                console.error("html5-qrcode library failed to load.");
+            }
+        });
     </script>
 </body>
 </html>
