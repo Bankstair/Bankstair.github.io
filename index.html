@@ -110,6 +110,8 @@
             }
         }
     </style>
+    <!-- Einbinden der html5-qrcode Bibliothek -->
+    <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
     <!-- Manifest-Datei einbinden -->
     <link rel="manifest" href="/manifest.json">
 </head>
@@ -120,7 +122,7 @@
     <main>
         <h2>Kamera starten und QR Code scannen</h2>
         <!-- Video Container -->
-        <video id="video" autoplay playsinline></video>
+        <div id="reader" style="width: 320px; height: 240px;"></div>
         <!-- Kameraauswahl Dropdown -->
         <select id="camera-selection" style="display: none;"></select>
         <!-- Schaltfläche zum Starten der Kamera -->
@@ -142,6 +144,7 @@
             }
 
             let currentStream;
+            const html5QrCode = new Html5Qrcode("reader");
 
             function stopMediaTracks(stream) {
                 stream.getTracks().forEach(track => {
@@ -177,11 +180,22 @@
                                 navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: selectedCameraId } } })
                                     .then(function(stream) {
                                         currentStream = stream;
-                                        var video = document.getElementById('video');
-                                        video.srcObject = stream;
-                                        video.onloadedmetadata = function(e) {
-                                            video.play();
-                                        };
+                                        html5QrCode.start(
+                                            { deviceId: { exact: selectedCameraId } },
+                                            {
+                                                fps: 10,    // frames per second
+                                                qrbox: { width: 250, height: 250 }  // scanning box size
+                                            },
+                                            qrCodeMessage => {
+                                                console.log(`QR Code detected: ${qrCodeMessage}`);
+                                                window.location.href = qrCodeMessage;
+                                            },
+                                            errorMessage => {
+                                                console.warn(`QR Code no longer in front of camera.`);
+                                            })
+                                            .catch(err => {
+                                                console.error(`Unable to start QR code scanning, error: ${err}`);
+                                            });
                                     })
                                     .catch(function(err) {
                                         console.error(`Unable to start camera, error: ${err}`);
