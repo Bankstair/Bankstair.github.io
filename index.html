@@ -130,25 +130,6 @@
     </footer>
 
     <script>
-        // Funktion zum Leeren des Caches und vollständigen Neuladen der Seite
-        function clearCacheAndReload() {
-            if ('caches' in window) {
-                caches.keys().then(function(names) {
-                    for (let name of names) caches.delete(name);
-                }).then(function() {
-                    window.location.reload(true);
-                });
-            } else {
-                window.location.reload(true);
-            }
-        }
-
-        // Beim Laden der Seite den Cache leeren und die Seite neu laden, aber nur einmal
-        if (!sessionStorage.getItem('cacheCleared')) {
-            clearCacheAndReload();
-            sessionStorage.setItem('cacheCleared', 'true');
-        }
-
         document.addEventListener("DOMContentLoaded", function() {
             if ('serviceWorker' in navigator) {
                 navigator.serviceWorker.register('/service-worker.js')
@@ -159,6 +140,14 @@
                     });
             }
 
+            let currentStream;
+
+            function stopMediaTracks(stream) {
+                stream.getTracks().forEach(track => {
+                    track.stop();
+                });
+            }
+
             document.getElementById('start-camera').addEventListener('click', function() {
                 document.getElementById('camera-selection').style.display = 'block';
                 console.log("Starting camera...");
@@ -167,17 +156,22 @@
                     const videoDevices = devices.filter(device => device.kind === 'videoinput');
                     if (videoDevices.length > 0) {
                         const cameraSelection = document.getElementById('camera-selection');
+                        cameraSelection.innerHTML = ''; // Clear previous options
                         videoDevices.forEach(camera => {
                             const option = document.createElement('option');
                             option.value = camera.deviceId;
-                            option.text = camera.label;
+                            option.text = camera.label || `Camera ${cameraSelection.length + 1}`;
                             cameraSelection.appendChild(option);
                         });
 
                         cameraSelection.addEventListener('change', function() {
                             const selectedCameraId = cameraSelection.value;
+                            if (currentStream) {
+                                stopMediaTracks(currentStream);
+                            }
                             navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: selectedCameraId } } })
                                 .then(function(stream) {
+                                    currentStream = stream;
                                     var video = document.getElementById('video');
                                     video.srcObject = stream;
                                     video.onloadedmetadata = function(e) {
@@ -186,18 +180,6 @@
                                 })
                                 .catch(function(err) {
                                     console.error(`Unable to start camera, error: ${err}`);
-                                    // Fallback to default camera
-                                    navigator.mediaDevices.getUserMedia({ video: true })
-                                        .then(function(stream) {
-                                            var video = document.getElementById('video');
-                                            video.srcObject = stream;
-                                            video.onloadedmetadata = function(e) {
-                                                video.play();
-                                            };
-                                        })
-                                        .catch(function(err) {
-                                            console.error(`Unable to start fallback camera, error: ${err}`);
-                                        });
                                 });
                         });
 
