@@ -7,18 +7,26 @@
     <style>
         /* Hier kannst du CSS hinzufügen */
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
-            padding: 0;
-            background-color: #c5c3c3;
+            padding: 1rem;
+            background-color: #262626;
             font-size: 0.9rem; /* Schriftgröße etwas kleiner */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            color: #ffffff; /* Textfarbe */
         }
 
         header {
-            background-color: #727272;
-            color: rgb(255, 255, 255);
+            background-color: #4CAF50;
+            color: #ffffff;
             padding: 0.5rem;
             text-align: center;
+            width: 100%;
+            border: 2px solid #000; /* Rahmen um die Überschrift */
         }
 
         main {
@@ -26,16 +34,58 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
+            flex-grow: 1;
         }
 
         footer {
-            background-color: #868686;
-            color: rgb(255, 255, 255);
+            background-color: #525252;
+            color: #ffffff;
             text-align: center;
             padding: 0.5rem;
-            position: fixed;
-            bottom: 0;
             width: 100%;
+        }
+
+        video {
+            width: 320px; /* Breite des Video-Fensters */
+            height: 240px; /* Höhe des Video-Fensters */
+            border: 2px solid #000; /* Rahmen um das Video-Fenster */
+            margin-top: 1rem; /* Abstand nach oben */
+        }
+
+        button {
+            margin-top: 1rem; /* Abstand nach oben */
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            background-color: #4CAF50; /* Hintergrundfarbe der Schaltfläche */
+            color: #ffffff; /* Textfarbe der Schaltfläche */
+            border: none; /* Kein Rahmen */
+            border-radius: 5px; /* Abgerundete Ecken */
+        }
+
+        button:hover {
+            background-color: #45a049; /* Hintergrundfarbe der Schaltfläche beim Hover */
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: #ffffff; /* Textfarbe der Überschriften */
+        }
+
+        h2 {
+            border: 2px solid #000; /* Rahmen um Listenfy by bko */
+            background-color: #525252;
+            padding: 0.2rem;
+            font-size: 0.85rem;
+        }
+
+        p {
+            color: #ffffff; /* Textfarbe des Absatzes */
+        }
+
+        #camera-selection {
+            margin-top: 1rem; /* Abstand nach oben */
+            align-self: flex-end; /* Rechtsbündig */
         }
 
         /* Media Queries für mobile Ansicht */
@@ -49,10 +99,12 @@
             main {
                 padding: 1rem; /* Padding für mobile Ansicht */
             }
+            video {
+                width: 240px; /* Breite des Video-Fensters für mobile Ansicht */
+                height: 180px; /* Höhe des Video-Fensters für mobile Ansicht */
+            }
         }
     </style>
-    <!-- Einbinden der html5-qrcode Bibliothek -->
-    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
     <!-- Manifest-Datei einbinden -->
     <link rel="manifest" href="/manifest.json">
 </head>
@@ -61,14 +113,13 @@
         <h1>Listenfy/Bankstair</h1>
     </header>
     <main>
-        <p>Listenfy by bko</p>
-        <!-- QR-Code-Scanner Container -->
-        <div id="qr-reader" style="width: 300px; height: 300px; display: none;"></div>
-        <div id="qr-reader-results"></div>
-        <!-- Schaltfläche zum Starten der Kamera -->
-        <button id="start-qr-scanner">QR-Code-Scanner starten</button>
+        <h2>Scanne den QR Code um zu starten</h2>
+        <!-- Video Container -->
+        <video id="video" autoplay></video>
         <!-- Kameraauswahl Dropdown -->
         <select id="camera-selection" style="display: none;"></select>
+        <!-- Schaltfläche zum Starten der Kamera -->
+        <button id="start-camera">Kamera starten</button>
     </main>
     <footer>
         <p>© 2025 BankoProject1</p>
@@ -85,46 +136,46 @@
                     });
             }
 
-            function onScanSuccess(decodedText, decodedResult) {
-                // Handle the result here
-                document.getElementById('qr-reader-results').innerText = `Scanned result: ${decodedText}`;
-            }
-
-            function onScanFailure(error) {
-                // Handle scan failure, usually better to ignore and keep scanning.
-                console.warn(`QR error = ${error}`);
-            }
-
-            document.getElementById('start-qr-scanner').addEventListener('click', function() {
-                document.getElementById('qr-reader').style.display = 'block';
+            document.getElementById('start-camera').addEventListener('click', function() {
                 document.getElementById('camera-selection').style.display = 'block';
-                console.log("Starting QR scanner...");
+                console.log("Starting camera...");
 
-                Html5qrcode.getCameras().then(cameras => {
-                    if (cameras && cameras.length) {
+                navigator.mediaDevices.enumerateDevices().then(devices => {
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                    if (videoDevices.length > 0) {
                         const cameraSelection = document.getElementById('camera-selection');
-                        cameras.forEach(camera => {
+                        videoDevices.forEach(camera => {
                             const option = document.createElement('option');
-                            option.value = camera.id;
+                            option.value = camera.deviceId;
                             option.text = camera.label;
                             cameraSelection.appendChild(option);
                         });
 
                         cameraSelection.addEventListener('change', function() {
                             const selectedCameraId = cameraSelection.value;
-                            const html5qrCode = new Html5qrCode("qr-reader");
-                            console.log(`Starting camera with ID: ${selectedCameraId}`);
-                            html5qrCode.start(
-                                { deviceId: { exact: selectedCameraId } },
-                                {
-                                    fps: 10,    // Optional, frame per seconds for qr code scanning
-                                    qrbox: { width: 250, height: 250 }  // Optional, if you want bounded box UI
-                                },
-                                onScanSuccess,
-                                onScanFailure
-                            ).catch(err => {
-                                console.error(`Unable to start scanning, error: ${err}`);
-                            });
+                            navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: selectedCameraId } } })
+                                .then(function(stream) {
+                                    var video = document.getElementById('video');
+                                    video.srcObject = stream;
+                                    video.onloadedmetadata = function(e) {
+                                        video.play();
+                                    };
+                                })
+                                .catch(function(err) {
+                                    console.error(`Unable to start camera, error: ${err}`);
+                                    // Fallback to default camera
+                                    navigator.mediaDevices.getUserMedia({ video: true })
+                                        .then(function(stream) {
+                                            var video = document.getElementById('video');
+                                            video.srcObject = stream;
+                                            video.onloadedmetadata = function(e) {
+                                                video.play();
+                                            };
+                                        })
+                                        .catch(function(err) {
+                                            console.error(`Unable to start fallback camera, error: ${err}`);
+                                        });
+                                });
                         });
 
                         // Trigger change event to start with the first camera
@@ -136,13 +187,6 @@
                     console.error(`Error getting cameras: ${err}`);
                 });
             });
-
-            // Debugging: Check if the library is loaded
-            if (typeof Html5qrcode !== 'undefined') {
-                console.log("html5-qrcode library loaded successfully.");
-            } else {
-                console.error("html5-qrcode library failed to load.");
-            }
         });
     </script>
 </body>
