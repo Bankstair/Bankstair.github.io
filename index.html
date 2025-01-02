@@ -154,6 +154,16 @@
                 });
             }
 
+            function openSpotifyApp(url) {
+                // Check if the URL is a Spotify URL
+                if (url.startsWith("https://open.spotify.com/") || url.startsWith("spotify:")) {
+                    // Open the Spotify app
+                    window.location.href = url;
+                } else {
+                    console.warn("Not a Spotify URL.");
+                }
+            }
+
             document.getElementById('start-camera').addEventListener('click', function() {
                 document.getElementById('camera-selection').style.display = 'block';
                 console.log("Starting camera...");
@@ -192,7 +202,7 @@
                                                 const currentTime = new Date().getTime();
                                                 if (currentTime - lastScannedTime > 3000) { // 3 Sekunden
                                                     console.log(`QR Code detected: ${qrCodeMessage}`);
-                                                    window.location.href = qrCodeMessage;
+                                                    openSpotifyApp(qrCodeMessage);
                                                     lastScannedTime = currentTime;
                                                 }
                                             },
