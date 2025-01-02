@@ -195,8 +195,8 @@
                                         html5QrCode.start(
                                             { deviceId: { exact: selectedCameraId } },
                                             {
-                                                fps: 10,    // frames per second
-                                                qrbox: { width: 250, height: 250 }  // scanning box size
+                                                fps: 15,    // frames per second
+                                                qrbox: { width: 300, height: 300 }  // scanning box size
                                             },
                                             qrCodeMessage => {
                                                 const currentTime = new Date().getTime();
