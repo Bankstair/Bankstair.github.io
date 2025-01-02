@@ -145,7 +145,7 @@
             }
 
             let currentStream;
-            const html5QrCode = new Html5Qrcode("reader");
+            const html5QrCode = new Html5Qrcode("reader", { experimentalFeatures: { useBarCodeDetectorIfSupported: true } });
 
             function stopMediaTracks(stream) {
                 stream.getTracks().forEach(track => {
