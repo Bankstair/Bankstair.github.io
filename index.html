@@ -144,7 +144,7 @@
             }
 
             let currentStream;
-            const html5qrcode = new Html5qrcode("reader");
+            const html5QrCode = new Html5Qrcode("reader");
 
             function stopMediaTracks(stream) {
                 stream.getTracks().forEach(track => {
@@ -180,7 +180,7 @@
                                 navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: selectedCameraId } } })
                                     .then(function(stream) {
                                         currentStream = stream;
-                                        html5qrcode.start(
+                                        html5QrCode.start(
                                             { deviceId: { exact: selectedCameraId } },
                                             {
                                                 fps: 10,    // frames per second
