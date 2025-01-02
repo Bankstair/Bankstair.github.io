@@ -191,36 +191,14 @@
                                 const selectedCameraId = cameraSelection.value;
                                 if (currentStream) {
                                     stopMediaTracks(currentStream);
-                                }
-                                navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: selectedCameraId } } })
-                                    .then(function(stream) {
-                                        currentStream = stream;
-                                        html5QrCode.start(
-                                            { deviceId: { exact: selectedCameraId } },
-                                            {
-                                                fps: 15,    // frames per second
-                                                qrbox: { width: 320, height: 240 }  // scanning box size
-                                            },
-                                            qrCodeMessage => {
-                                                const currentTime = new Date().getTime();
-                                                if (currentTime - lastScannedTime > 3000) { // 3 Sekunden
-                                                    console.log(`QR Code detected: ${qrCodeMessage}`);
-                                                    document.getElementById('qr-status').innerText = "QR Code erkannt!";
-                                                    openSpotifyApp(qrCodeMessage);
-                                                    lastScannedTime = currentTime;
-                                                }
-                                            },
-                                            errorMessage => {
-                                                console.warn(`QR Code no longer in front of camera.`);
-                                                document.getElementById('qr-status').innerText = "Kein QR Code erkannt.";
-                                            })
-                                            .catch(err => {
-                                                console.error(`Unable to start QR code scanning, error: ${err}`);
-                                            });
-                                    })
-                                    .catch(function(err) {
-                                        console.error(`Unable to start camera, error: ${err}`);
+                                    html5QrCode.stop().then(() => {
+                                        startQrCodeScanner(selectedCameraId);
+                                    }).catch(err => {
+                                        console.error(`Unable to stop QR code scanning, error: ${err}`);
                                     });
+                                } else {
+                                    startQrCodeScanner(selectedCameraId);
+                                }
                             });
 
                             // Trigger change event to start with the first camera
@@ -233,6 +211,38 @@
                         console.error(`Error getting cameras: ${err}`);
                     });
             });
+
+            function startQrCodeScanner(cameraId) {
+                navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: cameraId } } })
+                    .then(function(stream) {
+                        currentStream = stream;
+                        html5QrCode.start(
+                            { deviceId: { exact: cameraId } },
+                            {
+                                fps: 15,    // frames per second
+                                qrbox: { width: 320, height: 240 }  // scanning box size
+                            },
+                            qrCodeMessage => {
+                                const currentTime = new Date().getTime();
+                                if (currentTime - lastScannedTime > 3000) { // 3 Sekunden
+                                    console.log(`QR Code detected: ${qrCodeMessage}`);
+                                    document.getElementById('qr-status').innerText = "QR Code erkannt!";
+                                    openSpotifyApp(qrCodeMessage);
+                                    lastScannedTime = currentTime;
+                                }
+                            },
+                            errorMessage => {
+                                console.warn(`QR Code no longer in front of camera.`);
+                                document.getElementById('qr-status').innerText = "Kein QR Code erkannt.";
+                            })
+                            .catch(err => {
+                                console.error(`Unable to start QR code scanning, error: ${err}`);
+                            });
+                    })
+                    .catch(function(err) {
+                        console.error(`Unable to start camera, error: ${err}`);
+                    });
+            }
         });
     </script>
 </body>
