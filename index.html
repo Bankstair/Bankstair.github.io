@@ -128,6 +128,8 @@
         <select id="camera-selection" style="display: none;"></select>
         <!-- Schaltfläche zum Starten der Kamera -->
         <button id="start-camera">Kamera starten</button>
+        <!-- Schaltfläche zum Anzeigen des QR-Code-Status -->
+        <button id="qr-status" style="display: none;">QR Code Status</button>
     </main>
     <footer>
         <p>© 2025 BankoProject1</p>
@@ -166,6 +168,7 @@
 
             document.getElementById('start-camera').addEventListener('click', function() {
                 document.getElementById('camera-selection').style.display = 'block';
+                document.getElementById('qr-status').style.display = 'block';
                 console.log("Starting camera...");
 
                 navigator.mediaDevices.getUserMedia({ video: true })
@@ -196,18 +199,20 @@
                                             { deviceId: { exact: selectedCameraId } },
                                             {
                                                 fps: 15,    // frames per second
-                                                qrbox: { width: 300, height: 300 }  // scanning box size
+                                                qrbox: { width: 320, height: 240 }  // scanning box size
                                             },
                                             qrCodeMessage => {
                                                 const currentTime = new Date().getTime();
                                                 if (currentTime - lastScannedTime > 3000) { // 3 Sekunden
                                                     console.log(`QR Code detected: ${qrCodeMessage}`);
+                                                    document.getElementById('qr-status').innerText = "QR Code erkannt!";
                                                     openSpotifyApp(qrCodeMessage);
                                                     lastScannedTime = currentTime;
                                                 }
                                             },
                                             errorMessage => {
                                                 console.warn(`QR Code no longer in front of camera.`);
+                                                document.getElementById('qr-status').innerText = "Kein QR Code erkannt.";
                                             })
                                             .catch(err => {
                                                 console.error(`Unable to start QR code scanning, error: ${err}`);
