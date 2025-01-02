@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meine Webseite</title>
+    <style>
+        /* Hier kannst du CSS hinzufügen */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #c5c3c3;
+            font-size: 0.9rem; /* Schriftgröße etwas kleiner */
+        }
+        header {
+            background-color: #727272;
+            color: rgb(255, 255, 255);
+            padding: 0.5rem;
+            text-align: center;
+        }
+        main {
+            padding: 2rem;
+        }
+        footer {
+            background-color: #868686;
+            color: rgb(255, 255, 255);
+            text-align: center;
+            padding: 0.5rem;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        /* Media Queries für mobile Ansicht */
+        @media (max-width: 600px) {
+            body {
+                font-size: 0.8rem; /* Schriftgröße für mobile Ansicht */
+            }
+            header, footer {
+                padding: 0.5rem; /* Padding für mobile Ansicht */
+            }
+            main {
+                padding: 1rem; /* Padding für mobile Ansicht */
+            }
+        }
+    </style>
+    <!-- Einbinden der html5-qrcode Bibliothek -->
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode/minified/html5-qrcode.min.js"></script>
+    <!-- Manifest-Datei einbinden -->
+    <link rel="manifest" href="/manifest.json">
+</head>
+<body>
+    <header>
+        <h1>Listenfy/Banko</h1>
+    </header>
+    <main>
+        <p>Listenfy by bko</p>
+        <!-- QR-Code-Scanner Container -->
+        <div id="qr-reader" style="width: 500px; height: 500px; display: none;"></div>
+        <div id="qr-reader-results"></div>
+        <!-- Schaltfläche zum Starten der Kamera -->
+        <button id="start-qr-scanner">QR-Code-Scanner starten</button>
+        <!-- Kameraauswahl Dropdown -->
+        <select id="camera-selection" style="display: none;"></select>
+    </main>
+    <footer>
+        <p>© 2025 BankoProject1</p>
+    </footer>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(function(registration) {
+                    console.log('Service Worker registered with scope:', registration.scope);
+                }).catch(function(error) {
+                    console.log('Service Worker registration failed:', error);
+                });
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // Handle the result here
+            document.getElementById('qr-reader-results').innerText = `Scanned result: ${decodedText}`;
+        }
+
+        function onScanFailure(error) {
+            // Handle scan failure, usually better to ignore and keep scanning.
+            console.warn(`QR error = ${error}`);
+        }
+
+        document.getElementById('start-qr-scanner').addEventListener('click', function() {
+            document.getElementById('qr-reader').style.display = 'block';
+            document.getElementById('camera-selection').style.display = 'block';
+            console.log("Starting QR scanner...");
+
+            Html5Qrcode.getCameras().then(cameras => {
+                if (cameras && cameras.length) {
+                    const cameraSelection = document.getElementById('camera-selection');
+                    cameras.forEach(camera => {
+                        const option = document.createElement('option');
+                        option.value = camera.id;
+                        option.text = camera.label;
+                        cameraSelection.appendChild(option);
+                    });
+
+                    cameraSelection.addEventListener('change', function() {
+                        const selectedCameraId = cameraSelection.value;
+                        const html5QrCode = new Html5Qrcode("qr-reader");
+                        console.log(`Starting camera with ID: ${selectedCameraId}`);
+                        html5QrCode.start(
+                            { deviceId: { exact: selectedCameraId } },
+                            {
+                                fps: 10,    // Optional, frame per seconds for qr code scanning
+                                qrbox: 250  // Optional, if you want bounded box UI
+                            },
+                            onScanSuccess,
+                            onScanFailure
+                        ).catch(err => {
+                            console.error(`Unable to start scanning, error: ${err}`);
+                        });
+                    });
+
+                    // Trigger change event to start with the first camera
+                    cameraSelection.dispatchEvent(new Event('change'));
+                } else {
+                    console.error("No cameras found.");
+                }
+            }).catch(err => {
+                console.error(`Error getting cameras: ${err}`);
+            });
+        });
+
+        // Debugging: Check if the library is loaded
+        if (typeof Html5Qrcode !== 'undefined') {
+            console.log("html5-qrcode library loaded successfully.");
+        } else {
+            console.error("html5-qrcode library failed to load.");
+        }
+    </script>
+</body>
+</html>
