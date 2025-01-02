@@ -98,6 +98,10 @@
             background-color: #FF0000; /* Hintergrundfarbe rot */
         }
 
+        .qr-code-border {
+            border: 2px solid red; /* Roter Rahmen um den QR-Code */
+        }
+
         /* Media Queries für mobile Ansicht */
         @media (max-width: 600px) {
             body {
@@ -122,12 +126,12 @@
 </head>
 <body>
     <header>
-        <h1>Listenfy/Bankstair</h1>
+        <h1>Listenfy/Banko</h1>
     </header>
     <main>
         <h2>Kamera starten und QR Code scannen</h2>
         <!-- Video Container -->
-        <div id="reader" style="width: 320px; height: 240px;"></div>
+        <div id="reader" class="qr-code-border" style="width: 320px; height: 240px;"></div>
         <!-- Kameraauswahl Dropdown -->
         <select id="camera-selection" style="display: none;"></select>
         <!-- Schaltfläche zum Starten der Kamera -->
@@ -224,7 +228,8 @@
                             { deviceId: { exact: cameraId } },
                             {
                                 fps: 15,    // frames per second
-                                qrbox: { width: 320, height: 240 }  // scanning box size
+                                qrbox: { width: 320, height: 240 },  // scanning box size
+                                aspectRatio: 1.3333 // aspect ratio (4:3)
                             },
                             qrCodeMessage => {
                                 const currentTime = new Date().getTime();
