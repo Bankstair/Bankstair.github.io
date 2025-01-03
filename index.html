@@ -157,7 +157,7 @@
 
             let currentStream;
             let lastScannedTime = 0;
-            const html5QrCode = new Html5Qrcode("reader", { experimentalFeatures: { useBarCodeDetectorIfSupported: true } });
+            const html5QrCode = new Html5Qrcode("reader");
 
             function stopMediaTracks(stream) {
                 if (stream) {
@@ -237,15 +237,13 @@
                             qrCodeMessage => {
                                 const currentTime = new Date().getTime();
                                 console.log(`QR Code detected: ${qrCodeMessage}`);
-                                if (currentTime - lastScannedTime > 3000) { // 3 Sekunden
-                                    document.getElementById('qr-status').innerText = "QR Code erkannt!";
-                                    document.getElementById('qr-status').style.backgroundColor = "#4CAF50"; // Hintergrundfarbe grün
-                                    openSpotifyApp(qrCodeMessage);
-                                    lastScannedTime = currentTime;
-                                }
+                                document.getElementById('qr-status').innerText = "QR Code erkannt!";
+                                document.getElementById('qr-status').style.backgroundColor = "#4CAF50"; // Hintergrundfarbe grün
+                                openSpotifyApp(qrCodeMessage);
+                                lastScannedTime = currentTime;
                             },
                             errorMessage => {
-                                console.warn(`QR Code no longer in front of camera.`);
+                                console.warn(`QR Code no longer in front of camera: ${errorMessage}`);
                                 document.getElementById('qr-status').innerText = "Kein QR Code erkannt.";
                                 document.getElementById('qr-status').style.backgroundColor = "#FF0000"; // Hintergrundfarbe rot
                             })
