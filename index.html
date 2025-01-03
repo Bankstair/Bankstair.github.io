@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" no-cache">
+    <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Meine Webseite</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -247,6 +247,7 @@
 
                 navigator.mediaDevices.getUserMedia({ video: true })
                     .then(function(stream) {
+                        currentStream = stream;
                         return navigator.mediaDevices.enumerateDevices();
                     })
                     .then(function(devices) {
@@ -311,7 +312,9 @@
                                 }).catch(err => {
                                     console.error(`Unable to stop QR code scanning, error: ${err}`);
                                 });
-                                openSpotifyApp(qrCodeMessage);
+                                if (qrCodeMessage.startsWith("https://open.spotify.com/") || qrCodeMessage.startsWith("spotify:")) {
+                                    openSpotifyApp(qrCodeMessage);
+                                }
                                 lastScannedTime = currentTime;
                             },
                             errorMessage => {
