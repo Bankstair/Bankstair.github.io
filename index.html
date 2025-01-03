@@ -157,7 +157,7 @@
 
             let currentStream;
             let lastScannedTime = 0;
-            const html5QrCode = new Html5Qrcode("reader");
+            const html5QrCode = new Html5Qrcode("reader", { experimentalFeatures: { useBarCodeDetectorIfSupported: true } });
 
             function stopMediaTracks(stream) {
                 if (stream) {
