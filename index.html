@@ -127,6 +127,21 @@
             word-wrap: break-word;
         }
 
+        #open-spotify {
+            margin-top: 1rem;
+            padding: 0.5rem 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            background-color: #1DB954; /* Spotify grün */
+            color: #ffffff; /* Textfarbe */
+            border: none; /* Kein Rahmen */
+            border-radius: 5px; /* Abgerundete Ecken */
+        }
+
+        #open-spotify:hover {
+            background-color: #1ED760; /* Hellere Spotify grün beim Hover */
+        }
+
         /* Media Queries für mobile Ansicht */
         @media (max-width: 600px) {
             body {
@@ -160,11 +175,13 @@
         <!-- Kameraauswahl Dropdown -->
         <select id="camera-selection" style="display: none;"></select>
         <!-- Schaltfläche zum Starten der Kamera -->
-        <button id="start-camera" aria-label="Kamera starten">Kamera starten</button>
+        <button id="start-camera" aria-label="Kamera starten" disabled>Kamera starten</button>
         <!-- Schaltfläche zum Anzeigen des QR-Code-Status -->
         <button id="qr-status" style="display: none;">QR Code Status</button>
         <!-- Box zum Anzeigen der erkannten URL -->
         <div id="qr-result" style="display: none;"></div>
+        <!-- Schaltfläche zum Öffnen der Spotify-App -->
+        <button id="open-spotify" aria-label="Spotify öffnen">Spotify öffnen</button>
     </main>
     <footer>
         <p>© 2025 BankoProject1</p>
@@ -210,6 +227,17 @@
                     console.warn("Invalid Spotify URL:", url);
                 }
             }
+
+            document.getElementById('open-spotify').addEventListener('click', function() {
+                // Versuche die Spotify-App zu öffnen
+                const spotifyAppUrl = "spotify:app";
+                window.location.href = spotifyAppUrl;
+
+                // Fallback zu Web-URL, falls die App nicht geöffnet werden kann
+                setTimeout(() => {
+                    document.getElementById('start-camera').disabled = false;
+                }, 500);
+            });
 
             document.getElementById('start-camera').addEventListener('click', function() {
                 document.getElementById('camera-selection').style.display = 'block';
