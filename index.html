@@ -114,6 +114,19 @@
             transition: background-color 0.3s ease-in-out;
         }
 
+        #qr-result {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000;
+            width: 100%;
+            max-width: 320px;
+            word-wrap: break-word;
+        }
+
         /* Media Queries für mobile Ansicht */
         @media (max-width: 600px) {
             body {
@@ -150,6 +163,8 @@
         <button id="start-camera" aria-label="Kamera starten">Kamera starten</button>
         <!-- Schaltfläche zum Anzeigen des QR-Code-Status -->
         <button id="qr-status" style="display: none;">QR Code Status</button>
+        <!-- Box zum Anzeigen der erkannten URL -->
+        <div id="qr-result" style="display: none;"></div>
     </main>
     <footer>
         <p>© 2025 BankoProject1</p>
@@ -192,6 +207,7 @@
             document.getElementById('start-camera').addEventListener('click', function() {
                 document.getElementById('camera-selection').style.display = 'block';
                 document.getElementById('qr-status').style.display = 'block';
+                document.getElementById('qr-result').style.display = 'block';
                 console.log("Starting camera...");
 
                 navigator.mediaDevices.getUserMedia({ video: true })
@@ -251,12 +267,10 @@
                             },
                             qrCodeMessage => {
                                 const currentTime = new Date().getTime();
-                                if (currentTime - lastScannedTime < 2000) {
-                                    return; // Verhindert doppelte Verarbeitung innerhalb von 2 Sekunden
-                                }
                                 console.log(`QR Code detected: ${qrCodeMessage}`);
                                 document.getElementById('qr-status').innerText = "QR Code erkannt!";
                                 document.getElementById('qr-status').style.backgroundColor = "#4CAF50"; // Hintergrundfarbe grün
+                                document.getElementById('qr-result').innerText = qrCodeMessage;
                                 openSpotifyApp(qrCodeMessage);
                                 lastScannedTime = currentTime;
                             },
