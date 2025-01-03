@@ -220,9 +220,7 @@
 
             function stopMediaTracks(stream) {
                 if (stream) {
-                    stream.getTracks().forEach(track => {
-                        track.stop();
-                    });
+                    stream.getTracks().forEach(track => track.stop());
                 }
             }
 
@@ -241,14 +239,24 @@
             }
 
             document.getElementById('open-spotify').addEventListener('click', function() {
-                // Versuche die Spotify-App zu öffnen
-                const spotifyAppUrl = "spotify:app";
-                window.location.href = spotifyAppUrl;
+                try {
+                    // Kamera-Stream stoppen
+                    stopMediaTracks(currentStream);
+                    if (html5QrCode.isScanning()) {
+                        html5QrCode.stop().catch(err => console.error("Fehler beim Stoppen des QR-Scanners:", err));
+                    }
 
-                // Fallback zu Web-URL, falls die App nicht geöffnet werden kann
-                setTimeout(() => {
-                    document.getElementById('start-camera').disabled = false;
-                }, 500);
+                    // Spotify-App öffnen
+                    const spotifyAppUrl = "spotify:app";
+                    window.location.href = spotifyAppUrl;
+
+                    // Fallback zu Web-URL
+                    setTimeout(() => {
+                        window.open("https://open.spotify.com/", '_blank');
+                    }, 500);
+                } catch (err) {
+                    console.error("Fehler beim Öffnen der Spotify-App:", err);
+                }
             });
 
             document.getElementById('start-camera').addEventListener('click', function() {
@@ -259,6 +267,7 @@
 
                 navigator.mediaDevices.getUserMedia({ video: true })
                     .then(function(stream) {
+                        console.log("Kamera erfolgreich gestartet");
                         currentStream = stream;
                         return navigator.mediaDevices.enumerateDevices();
                     })
@@ -346,6 +355,22 @@
                         console.error(`Unable to start camera, error: ${err}`);
                     });
             }
+
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden) {
+                    // Tab ist nicht sichtbar, Kamera stoppen
+                    stopMediaTracks(currentStream);
+                    if (html5QrCode.isScanning()) {
+                        html5QrCode.stop().catch(err => console.error("Fehler beim Stoppen des QR-Scanners:", err));
+                    }
+                } else {
+                    // Tab wird wieder sichtbar, Kamera starten
+                    const selectedCameraId = document.getElementById("camera-selection").value;
+                    if (selectedCameraId) {
+                        startQrCodeScanner(selectedCameraId);
+                    }
+                }
+            });
 
             window.addEventListener('beforeunload', () => {
                 stopMediaTracks(currentStream);
