@@ -9,24 +9,30 @@
     <title>Meine Webseite</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
-        /* Hier kannst du CSS hinzufügen */
+        :root {
+            --primary-color: #4CAF50;
+            --secondary-color: #1DB954;
+            --text-color: #ffffff;
+            --background-color: #262626;
+        }
+
         body {
             font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 1rem;
-            background-color: #262626;
-            font-size: 0.9rem; /* Schriftgröße etwas kleiner */
+            background-color: var(--background-color);
+            font-size: clamp(0.8rem, 2.5vw, 1rem); /* Dynamische Schriftgröße */
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
-            color: #ffffff; /* Textfarbe */
+            color: var(--text-color);
         }
 
         header {
             background-color: #525252;
-            color: #ffffff;
+            color: var(--text-color);
             padding: 0.5rem;
             text-align: center;
             width: 100%;
@@ -44,7 +50,7 @@
 
         footer {
             background-color: #525252;
-            color: #ffffff;
+            color: var(--text-color);
             text-align: center;
             padding: 0.5rem;
             width: 100%;
@@ -73,8 +79,8 @@
             padding: 0.5rem 1rem;
             font-size: 1rem;
             cursor: pointer;
-            background-color: #4CAF50; /* Hintergrundfarbe der Schaltfläche */
-            color: #ffffff; /* Textfarbe der Schaltfläche */
+            background-color: var(--primary-color);
+            color: var(--text-color);
             border: none; /* Kein Rahmen */
             border-radius: 5px; /* Abgerundete Ecken */
         }
@@ -83,8 +89,13 @@
             background-color: #45a049; /* Hintergrundfarbe der Schaltfläche beim Hover */
         }
 
+        button:focus {
+            outline: 2px solid var(--text-color);
+            outline-offset: 2px;
+        }
+
         h1, h2, h3, h4, h5, h6 {
-            color: #ffffff; /* Textfarbe der Überschriften */
+            color: var(--text-color); /* Textfarbe der Überschriften */
         }
 
         h2 {
@@ -95,7 +106,7 @@
         }
 
         p {
-            color: #ffffff; /* Textfarbe des Absatzes */
+            color: var(--text-color); /* Textfarbe des Absatzes */
         }
 
         #camera-selection {
@@ -132,8 +143,8 @@
             padding: 0.5rem 1rem;
             font-size: 1rem;
             cursor: pointer;
-            background-color: #1DB954; /* Spotify grün */
-            color: #ffffff; /* Textfarbe */
+            background-color: var(--secondary-color);
+            color: var(--text-color);
             border: none; /* Kein Rahmen */
             border-radius: 5px; /* Abgerundete Ecken */
         }
@@ -145,7 +156,7 @@
         /* Media Queries für mobile Ansicht */
         @media (max-width: 600px) {
             body {
-                font-size: 0.8rem; /* Schriftgröße für mobile Ansicht */
+                font-size: clamp(0.7rem, 2vw, 0.9rem); /* Dynamische Schriftgröße für mobile Ansicht */
             }
             header, footer {
                 padding: 0.5rem; /* Padding für mobile Ansicht */
@@ -173,9 +184,9 @@
         <!-- Video Container -->
         <div id="reader"></div>
         <!-- Kameraauswahl Dropdown -->
-        <select id="camera-selection" style="display: none;"></select>
+        <select id="camera-selection" aria-label="Auswahl der Kamera" style="display: none;"></select>
         <!-- Schaltfläche zum Starten der Kamera -->
-        <button id="start-camera" aria-label="Kamera starten" disabled>Kamera starten</button>
+        <button id="start-camera" aria-label="Starte die Kamera für QR-Code Scanning" disabled>Kamera starten</button>
         <!-- Schaltfläche zum Anzeigen des QR-Code-Status -->
         <button id="qr-status" style="display: none;">QR Code Status</button>
         <!-- Box zum Anzeigen der erkannten URL -->
@@ -199,6 +210,10 @@
                     });
             }
 
+            if (!navigator.onLine) {
+                alert('Die App funktioniert möglicherweise nicht vollständig im Offline-Modus.');
+            }
+
             let currentStream;
             let lastScannedTime = 0;
             const html5QrCode = new Html5Qrcode("reader");
@@ -212,20 +227,17 @@
             }
 
             function openSpotifyApp(url) {
-                const isSpotifyUrl = url.startsWith("https://open.spotify.com/") || url.startsWith("spotify:");
-                if (isSpotifyUrl) {
-                    // Versuche die Spotify-App zu öffnen
-                    const spotifyAppUrl = url.replace("https://open.spotify.com/", "spotify:").replace("/", ":");
-                    window.location.href = spotifyAppUrl;
-
-                    // Fallback zu Web-URL, falls die App nicht geöffnet werden kann
-                    setTimeout(() => {
-                        window.location.href = url;
-                    }, 500);
-                } else {
+                if (!url.startsWith("https://open.spotify.com/") && !url.startsWith("spotify:")) {
                     alert("Kein gültiger Spotify-Link erkannt.");
-                    console.warn("Invalid Spotify URL:", url);
+                    console.warn("Ungültige Spotify-URL:", url);
+                    return;
                 }
+                const appUrl = url.replace("https://open.spotify.com/", "spotify:").replace(/\//g, ":");
+                window.location.href = appUrl;
+
+                setTimeout(() => {
+                    window.open(url, '_blank');
+                }, 1000);
             }
 
             document.getElementById('open-spotify').addEventListener('click', function() {
@@ -283,8 +295,8 @@
                         }
                     })
                     .catch(function(err) {
-                        console.error(`Error getting cameras: ${err}`);
-                        alert('Kamera-Zugriff verweigert oder nicht verfügbar.');
+                        alert('Keine Kamera gefunden oder Zugriff verweigert. Bitte überprüfen Sie Ihre Geräteeinstellungen.');
+                        console.error(`Kamera-Fehler: ${err}`);
                     });
             });
 
@@ -294,44 +306,50 @@
                         currentStream = stream;
                         document.getElementById('reader').classList.add('scanning');
                         const qrboxSize = window.innerWidth < 600 ? { width: 240, height: 180 } : { width: 320, height: 240 };
-                        html5QrCode.start(
-                            { deviceId: { exact: cameraId } },
-                            {
-                                fps: 15,    // frames per second
-                                qrbox: qrboxSize,
-                                aspectRatio: 1.3333 // aspect ratio (4:3)
-                            },
-                            qrCodeMessage => {
-                                const currentTime = new Date().getTime();
-                                console.log(`QR Code detected: ${qrCodeMessage}`);
-                                document.getElementById('qr-status').innerText = "QR Code erkannt!";
-                                document.getElementById('qr-status').style.backgroundColor = "#4CAF50"; // Hintergrundfarbe grün
-                                document.getElementById('qr-result').innerText = qrCodeMessage;
-                                html5QrCode.stop().then(() => {
-                                    console.log("QR Code scanning stopped.");
-                                }).catch(err => {
-                                    console.error(`Unable to stop QR code scanning, error: ${err}`);
+                        if (!html5QrCode.isScanning()) {
+                            html5QrCode.start(
+                                { deviceId: { exact: cameraId } },
+                                {
+                                    fps: 15,    // frames per second
+                                    qrbox: qrboxSize,
+                                    aspectRatio: 1.3333 // aspect ratio (4:3)
+                                },
+                                qrCodeMessage => {
+                                    const currentTime = new Date().getTime();
+                                    console.log(`QR Code detected: ${qrCodeMessage}`);
+                                    document.getElementById('qr-status').innerText = "QR Code erkannt!";
+                                    document.getElementById('qr-status').style.backgroundColor = "#4CAF50"; // Hintergrundfarbe grün
+                                    document.getElementById('qr-result').innerText = qrCodeMessage;
+                                    html5QrCode.stop().then(() => {
+                                        console.log("QR Code scanning stopped.");
+                                    }).catch(err => {
+                                        console.error(`Unable to stop QR code scanning, error: ${err}`);
+                                    });
+                                    if (qrCodeMessage.startsWith("https://open.spotify.com/") || qrCodeMessage.startsWith("spotify:")) {
+                                        openSpotifyApp(qrCodeMessage);
+                                    }
+                                    lastScannedTime = currentTime;
+                                },
+                                errorMessage => {
+                                    console.warn(`QR Code no longer in front of camera: ${errorMessage}`);
+                                    document.getElementById('qr-status').innerText = "Kein QR Code erkannt.";
+                                    document.getElementById('qr-status').style.backgroundColor = "#FF0000"; // Hintergrundfarbe rot
+                                })
+                                .catch(err => {
+                                    console.error(`Unable to start QR code scanning, error: ${err}`);
+                                    document.getElementById('reader').classList.remove('scanning');
                                 });
-                                if (qrCodeMessage.startsWith("https://open.spotify.com/") || qrCodeMessage.startsWith("spotify:")) {
-                                    openSpotifyApp(qrCodeMessage);
-                                }
-                                lastScannedTime = currentTime;
-                            },
-                            errorMessage => {
-                                console.warn(`QR Code no longer in front of camera: ${errorMessage}`);
-                                document.getElementById('qr-status').innerText = "Kein QR Code erkannt.";
-                                document.getElementById('qr-status').style.backgroundColor = "#FF0000"; // Hintergrundfarbe rot
-                            })
-                            .catch(err => {
-                                console.error(`Unable to start QR code scanning, error: ${err}`);
-                                document.getElementById('reader').classList.remove('scanning');
-                            });
+                        }
                     })
                     .catch(function(err) {
-                        console.error(`Unable to start camera, error: ${err}`);
                         alert('Kamera-Zugriff verweigert oder nicht verfügbar.');
+                        console.error(`Unable to start camera, error: ${err}`);
                     });
             }
+
+            window.addEventListener('beforeunload', () => {
+                stopMediaTracks(currentStream);
+            });
         });
     </script>
 </body>
