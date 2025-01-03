@@ -216,6 +216,7 @@
 
             let currentStream;
             let lastScannedTime = 0;
+            let isScanning = false;
             const html5QrCode = new Html5Qrcode("reader");
 
             function stopMediaTracks(stream) {
@@ -242,8 +243,9 @@
                 try {
                     // Kamera-Stream stoppen
                     stopMediaTracks(currentStream);
-                    if (html5QrCode.isScanning()) {
+                    if (isScanning) {
                         html5QrCode.stop().catch(err => console.error("Fehler beim Stoppen des QR-Scanners:", err));
+                        isScanning = false;
                     }
 
                     // Spotify-App öffnen
@@ -287,11 +289,16 @@
                                 const selectedCameraId = cameraSelection.value;
                                 if (currentStream) {
                                     stopMediaTracks(currentStream);
-                                    html5QrCode.stop().then(() => {
+                                    if (isScanning) {
+                                        html5QrCode.stop().then(() => {
+                                            startQrCodeScanner(selectedCameraId);
+                                        }).catch(err => {
+                                            console.error(`Unable to stop QR code scanning, error: ${err}`);
+                                        });
+                                        isScanning = false;
+                                    } else {
                                         startQrCodeScanner(selectedCameraId);
-                                    }).catch(err => {
-                                        console.error(`Unable to stop QR code scanning, error: ${err}`);
-                                    });
+                                    }
                                 } else {
                                     startQrCodeScanner(selectedCameraId);
                                 }
@@ -315,7 +322,7 @@
                         currentStream = stream;
                         document.getElementById('reader').classList.add('scanning');
                         const qrboxSize = window.innerWidth < 600 ? { width: 240, height: 180 } : { width: 320, height: 240 };
-                        if (!html5QrCode.isScanning()) {
+                        if (!isScanning) {
                             html5QrCode.start(
                                 { deviceId: { exact: cameraId } },
                                 {
@@ -334,6 +341,7 @@
                                     }).catch(err => {
                                         console.error(`Unable to stop QR code scanning, error: ${err}`);
                                     });
+                                    isScanning = false;
                                     if (qrCodeMessage.startsWith("https://open.spotify.com/") || qrCodeMessage.startsWith("spotify:")) {
                                         openSpotifyApp(qrCodeMessage);
                                     }
@@ -348,6 +356,7 @@
                                     console.error(`Unable to start QR code scanning, error: ${err}`);
                                     document.getElementById('reader').classList.remove('scanning');
                                 });
+                            isScanning = true;
                         }
                     })
                     .catch(function(err) {
@@ -360,8 +369,9 @@
                 if (document.hidden) {
                     // Tab ist nicht sichtbar, Kamera stoppen
                     stopMediaTracks(currentStream);
-                    if (html5QrCode.isScanning()) {
+                    if (isScanning) {
                         html5QrCode.stop().catch(err => console.error("Fehler beim Stoppen des QR-Scanners:", err));
+                        isScanning = false;
                     }
                 } else {
                     // Tab wird wieder sichtbar, Kamera starten
