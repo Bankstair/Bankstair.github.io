@@ -235,7 +235,6 @@
                 window.location.href = appUrl;
 
                 setTimeout(() => {
-                    window.open(url, '_blank');
                     window.focus();
                     document.getElementById('start-camera').click();
                 }, 1000);
@@ -254,12 +253,11 @@
                     const spotifyAppUrl = "spotify:app";
                     window.location.href = spotifyAppUrl;
 
-                    // Fallback zu Web-URL
+                    // Kamera neu starten
                     setTimeout(() => {
-                        window.open("https://open.spotify.com/", '_blank');
                         window.focus();
                         document.getElementById('start-camera').click();
-                    }, 500);
+                    }, 1000);
                 } catch (err) {
                     console.error("Fehler beim Öffnen der Spotify-App:", err);
                 }
