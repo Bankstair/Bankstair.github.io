@@ -204,24 +204,9 @@
     </footer>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(function(registration) {
-                        console.log('Service Worker registered with scope:', registration.scope);
-                    }).catch(function(error) {
-                        console.error('Service Worker registration failed:', error.message);
-                        alert('Service Worker konnte nicht registriert werden.');
-                    });
-            }
-
-            if (!navigator.onLine) {
-                alert('Die App funktioniert möglicherweise nicht vollständig im Offline-Modus.');
-            }
-
+        document.addEventListener("DOMContentLoaded", function () {
             let currentStream;
-            let lastScannedTime = 0;
-            let isScanning = false;
+            let lastScannedUrl = ""; // Speichere die zuletzt gescannte URL
             const html5QrCode = new Html5Qrcode("reader");
 
             function stopMediaTracks(stream) {
@@ -237,150 +222,63 @@
                     return;
                 }
                 const appUrl = url.replace("https://open.spotify.com/", "spotify:").replace(/\//g, ":");
-                window.location.href = appUrl;
+                window.location.href = appUrl; // Spotify-App öffnen
             }
 
-            document.getElementById('open-spotify').addEventListener('click', function() {
-                try {
-                    // Kamera-Stream stoppen
-                    stopMediaTracks(currentStream);
-                    if (isScanning) {
-                        html5QrCode.stop().catch(err => console.error("Fehler beim Stoppen des QR-Scanners:", err));
-                        isScanning = false;
-                    }
+            // QR-Code-Scan-Callback
+            function onQrCodeScanned(qrCodeMessage) {
+                console.log(`QR Code detected: ${qrCodeMessage}`);
+                lastScannedUrl = qrCodeMessage; // Speichere die erkannte URL
+                document.getElementById("qr-result").innerText = qrCodeMessage;
+                document.getElementById("qr-status").innerText = "QR Code erkannt!";
+                document.getElementById("qr-status").style.backgroundColor = "#4CAF50"; // Hintergrund grün
 
-                    // Spotify-App öffnen
-                    const spotifyAppUrl = "spotify:app";
-                    window.location.href = spotifyAppUrl;
-                } catch (err) {
-                    console.error("Fehler beim Öffnen der Spotify-App:", err);
+                if (qrCodeMessage.startsWith("https://open.spotify.com/") || qrCodeMessage.startsWith("spotify:")) {
+                    openSpotifyApp(qrCodeMessage); // Automatische Weiterleitung
+                }
+            }
+
+            // Button-Handler für "Spotify öffnen"
+            document.getElementById("open-spotify").addEventListener("click", function () {
+                if (lastScannedUrl) {
+                    openSpotifyApp(lastScannedUrl);
+                } else {
+                    alert("Keine URL zum Öffnen verfügbar.");
                 }
             });
 
-            document.getElementById('start-camera').addEventListener('click', function() {
-                document.getElementById('camera-selection').style.display = 'block';
-                document.getElementById('qr-status').style.display = 'block';
-                document.getElementById('qr-result').style.display = 'block';
-                console.log("Starting camera...");
-
+            document.getElementById("start-camera").addEventListener("click", function () {
+                document.getElementById("camera-selection").style.display = "block";
                 navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(function(stream) {
-                        console.log("Kamera erfolgreich gestartet");
+                    .then(function (stream) {
                         currentStream = stream;
-                        return navigator.mediaDevices.enumerateDevices();
+                        startQrCodeScanner();
                     })
-                    .then(function(devices) {
-                        const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                        if (videoDevices.length > 0) {
-                            const cameraSelection = document.getElementById('camera-selection');
-                            cameraSelection.innerHTML = ''; // Clear previous options
-                            videoDevices.forEach(camera => {
-                                const option = document.createElement('option');
-                                option.value = camera.deviceId;
-                                option.text = camera.label || `Camera ${cameraSelection.length + 1}`;
-                                cameraSelection.appendChild(option);
-                            });
-
-                            cameraSelection.addEventListener('change', function() {
-                                const selectedCameraId = cameraSelection.value;
-                                if (currentStream) {
-                                    stopMediaTracks(currentStream);
-                                    if (isScanning) {
-                                        html5QrCode.stop().then(() => {
-                                            startQrCodeScanner(selectedCameraId);
-                                        }).catch(err => {
-                                            console.error(`Unable to stop QR code scanning, error: ${err}`);
-                                        });
-                                        isScanning = false;
-                                    } else {
-                                        startQrCodeScanner(selectedCameraId);
-                                    }
-                                } else {
-                                    startQrCodeScanner(selectedCameraId);
-                                }
-                            });
-
-                            // Trigger change event to start with the first camera
-                            cameraSelection.dispatchEvent(new Event('change'));
-                        } else {
-                            console.error("No cameras found.");
-                        }
-                    })
-                    .catch(function(err) {
-                        alert('Keine Kamera gefunden oder Zugriff verweigert. Bitte überprüfen Sie Ihre Geräteeinstellungen.');
+                    .catch(function (err) {
+                        alert('Kamera-Zugriff verweigert.');
                         console.error(`Kamera-Fehler: ${err}`);
                     });
             });
 
-            function startQrCodeScanner(cameraId) {
-                navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: cameraId } } })
-                    .then(function(stream) {
-                        currentStream = stream;
-                        document.getElementById('reader').classList.add('scanning');
-                        const qrboxSize = window.innerWidth < 600 ? { width: 200, height: 200 } : { width: 320, height: 240 };
-                        if (!isScanning) {
-                            html5QrCode.start(
-                                { deviceId: { exact: cameraId } },
-                                {
-                                    fps: 10,    // frames per second
-                                    qrbox: qrboxSize,
-                                    aspectRatio: 1.3333 // aspect ratio (4:3)
-                                },
-                                qrCodeMessage => {
-                                    const currentTime = new Date().getTime();
-                                    console.log(`QR Code detected: ${qrCodeMessage}`);
-                                    document.getElementById('qr-status').innerText = "QR Code erkannt!";
-                                    document.getElementById('qr-status').style.backgroundColor = "#4CAF50"; // Hintergrundfarbe grün
-                                    document.getElementById('qr-result').innerText = qrCodeMessage;
-                                    html5QrCode.stop().then(() => {
-                                        console.log("QR Code scanning stopped.");
-                                        document.getElementById('reader').classList.remove('scanning');
-                                        document.getElementById('reader').innerText = "Erfolgreich";
-                                    }).catch(err => {
-                                        console.error(`Unable to stop QR code scanning, error: ${err}`);
-                                    });
-                                    isScanning = false;
-                                    if (qrCodeMessage.startsWith("https://open.spotify.com/") || qrCodeMessage.startsWith("spotify:")) {
-                                        openSpotifyApp(qrCodeMessage);
-                                    }
-                                    lastScannedTime = currentTime;
-                                },
-                                errorMessage => {
-                                    console.warn(`QR Code no longer in front of camera: ${errorMessage}`);
-                                    document.getElementById('qr-status').innerText = "Kein QR Code erkannt.";
-                                    document.getElementById('qr-status').style.backgroundColor = "#FF0000"; // Hintergrundfarbe rot
-                                })
-                                .catch(err => {
-                                    console.error(`Unable to start QR code scanning, error: ${err}`);
-                                    document.getElementById('reader').classList.remove('scanning');
-                                });
-                            isScanning = true;
-                        }
+            function startQrCodeScanner() {
+                const qrboxSize = window.innerWidth < 600 ? { width: 200, height: 200 } : { width: 320, height: 240 };
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    {
+                        fps: 10,
+                        qrbox: qrboxSize
+                    },
+                    onQrCodeScanned,
+                    errorMessage => {
+                        document.getElementById("qr-status").innerText = "Kein QR Code erkannt.";
+                        document.getElementById("qr-status").style.backgroundColor = "#FF0000"; // Hintergrund rot
                     })
-                    .catch(function(err) {
-                        alert('Kamera-Zugriff verweigert oder nicht verfügbar.');
-                        console.error(`Unable to start camera, error: ${err}`);
+                    .catch(err => {
+                        console.error(`QR Code Scanner konnte nicht gestartet werden: ${err}`);
                     });
             }
 
-            document.addEventListener("visibilitychange", () => {
-                if (document.hidden) {
-                    // Tab ist nicht sichtbar, Kamera stoppen
-                    stopMediaTracks(currentStream);
-                    if (isScanning) {
-                        html5QrCode.stop().catch(err => console.error("Fehler beim Stoppen des QR-Scanners:", err));
-                        isScanning = false;
-                    }
-                } else {
-                    // Tab wird wieder sichtbar, Kamera starten
-                    const selectedCameraId = document.getElementById("camera-selection").value;
-                    if (selectedCameraId) {
-                        startQrCodeScanner(selectedCameraId);
-                    }
-                }
-            });
-
-            window.addEventListener('beforeunload', () => {
+            window.addEventListener("beforeunload", () => {
                 stopMediaTracks(currentStream);
             });
         });
