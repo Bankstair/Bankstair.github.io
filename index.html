@@ -14,6 +14,7 @@
             --secondary-color: #1DB954;
             --text-color: #ffffff;
             --background-color: #262626;
+            --hover-color: #45a049;
         }
 
         body {
@@ -91,7 +92,7 @@
         }
 
         button:hover {
-            background-color: #45a049; /* Hintergrundfarbe der Schaltfläche beim Hover */
+            background-color: var(--hover-color); /* Hintergrundfarbe der Schaltfläche beim Hover */
         }
 
         button:focus {
@@ -116,18 +117,20 @@
 
         #camera-selection {
             margin-top: 1rem; /* Abstand nach oben */
-            align-self: flex-end; /* Rechtsbündig */
+            align-self: center; /* Zentriert */
             padding: 0.5rem;
             font-size: 1rem;
             border: 1px solid #ccc;
             border-radius: 5px;
             background-color: #ffffff;
             color: #000;
+            width: 320px; /* Breite passend zum Video-Fenster */
         }
 
         #qr-status {
             background-color: #FF0000; /* Hintergrundfarbe rot */
             transition: background-color 0.3s ease-in-out;
+            margin-bottom: 1rem; /* Abstand nach unten */
         }
 
         #qr-result {
@@ -155,7 +158,7 @@
         }
 
         #open-spotify:hover {
-            background-color: #1ED760; /* Hellere Spotify grün beim Hover */
+            background-color: var(--hover-color); /* Hellere Spotify grün beim Hover */
         }
 
         /* Media Queries für mobile Ansicht */
@@ -173,6 +176,9 @@
                 width: 240px; /* Breite des Video-Fensters für mobile Ansicht */
                 height: 180px; /* Höhe des Video-Fensters für mobile Ansicht */
             }
+            #camera-selection {
+                width: 240px; /* Breite passend zum Video-Fenster für mobile Ansicht */
+            }
         }
     </style>
     <!-- Einbinden der html5-qrcode Bibliothek -->
@@ -186,14 +192,12 @@
     </header>
     <main>
         <h2>Kamera starten und QR Code scannen</h2>
+        <!-- Schaltfläche zum Anzeigen des QR-Code-Status -->
+        <button id="qr-status" style="display: none;">QR Code Status</button>
         <!-- Video Container -->
         <div id="reader"></div>
         <!-- Kameraauswahl Dropdown -->
         <select id="camera-selection" aria-label="Auswahl der Kamera" style="display: none;"></select>
-        <!-- Schaltfläche zum Starten der Kamera -->
-        <button id="start-camera" aria-label="Starte die Kamera für QR-Code Scanning">Kamera starten</button>
-        <!-- Schaltfläche zum Anzeigen des QR-Code-Status -->
-        <button id="qr-status" style="display: none;">QR Code Status</button>
         <!-- Box zum Anzeigen der erkannten URL -->
         <div id="qr-result" style="display: none;"></div>
         <!-- Schaltfläche zum Öffnen der Spotify-App -->
@@ -238,11 +242,6 @@
                 }
                 const appUrl = url.replace("https://open.spotify.com/", "spotify:").replace(/\//g, ":");
                 window.location.href = appUrl;
-
-                setTimeout(() => {
-                    window.focus();
-                    document.getElementById('start-camera').click();
-                }, 1000);
             }
 
             document.getElementById('open-spotify').addEventListener('click', function() {
@@ -257,12 +256,6 @@
                     // Spotify-App öffnen
                     const spotifyAppUrl = "spotify:app";
                     window.location.href = spotifyAppUrl;
-
-                    // Kamera neu starten
-                    setTimeout(() => {
-                        window.focus();
-                        document.getElementById('start-camera').click();
-                    }, 1000);
                 } catch (err) {
                     console.error("Fehler beim Öffnen der Spotify-App:", err);
                 }
@@ -350,6 +343,7 @@
                                     }).catch(err => {
                                         console.error(`Unable to stop QR code scanning, error: ${err}`);
                                     });
+                                    stopMediaTracks(currentStream); // Kamera-Stream stoppen
                                     isScanning = false;
                                     if (qrCodeMessage.startsWith("https://open.spotify.com/") || qrCodeMessage.startsWith("spotify:")) {
                                         openSpotifyApp(qrCodeMessage);
