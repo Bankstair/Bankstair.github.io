@@ -130,7 +130,6 @@
         #qr-status {
             background-color: #FF0000; /* Hintergrundfarbe rot */
             transition: background-color 0.3s ease-in-out;
-            margin-bottom: 1rem; /* Abstand nach unten */
         }
 
         #qr-result {
@@ -191,13 +190,14 @@
         <h1>Listenfy/Banko</h1>
     </header>
     <main>
-        <h2>Kamera starten und QR Code scannen</h2>
-        <!-- Schaltfläche zum Anzeigen des QR-Code-Status -->
-        <button id="qr-status" style="display: none;">QR Code Status</button>
         <!-- Video Container -->
         <div id="reader"></div>
         <!-- Kameraauswahl Dropdown -->
         <select id="camera-selection" aria-label="Auswahl der Kamera" style="display: none;"></select>
+        <!-- Schaltfläche zum Starten der Kamera -->
+        <button id="start-camera" aria-label="Starte die Kamera für QR-Code Scanning">Kamera starten</button>
+        <!-- Schaltfläche zum Anzeigen des QR-Code-Status -->
+        <button id="qr-status" style="display: none;">QR Code Status</button>
         <!-- Box zum Anzeigen der erkannten URL -->
         <div id="qr-result" style="display: none;"></div>
         <!-- Schaltfläche zum Öffnen der Spotify-App -->
