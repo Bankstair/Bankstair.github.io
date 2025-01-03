@@ -271,6 +271,11 @@
                                 document.getElementById('qr-status').innerText = "QR Code erkannt!";
                                 document.getElementById('qr-status').style.backgroundColor = "#4CAF50"; // Hintergrundfarbe grün
                                 document.getElementById('qr-result').innerText = qrCodeMessage;
+                                html5QrCode.stop().then(() => {
+                                    console.log("QR Code scanning stopped.");
+                                }).catch(err => {
+                                    console.error(`Unable to stop QR code scanning, error: ${err}`);
+                                });
                                 openSpotifyApp(qrCodeMessage);
                                 lastScannedTime = currentTime;
                             },
