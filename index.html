@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Pragma">
     <meta http-equiv="Expires" content="0">
     <title>Listenfy/Banko</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
@@ -141,8 +141,8 @@
             border-radius: 5px;
             background-color: #ffffff;
             color: #000;
-            width: 100%;
-            max-width: 320px;
+            width: 320px; /* Breite passend zum Video-Fenster */
+            display: none; /* Unsichtbar bis ein QR-Code erkannt wird */
             word-wrap: break-word;
         }
 
@@ -177,6 +177,9 @@
                 height: 180px; /* Höhe des Video-Fensters für mobile Ansicht */
             }
             #camera-selection {
+                width: 240px; /* Breite passend zum Video-Fenster für mobile Ansicht */
+            }
+            #qr-result {
                 width: 240px; /* Breite passend zum Video-Fenster für mobile Ansicht */
             }
         }
@@ -277,7 +280,6 @@
                         document.getElementById('confirm-camera-access').style.display = 'none';
                         document.getElementById('camera-selection').style.display = 'block';
                         document.getElementById('qr-status').style.display = 'block';
-                        document.getElementById('qr-result').style.display = 'block';
                         startQrCodeScanner();
                     })
                     .catch(function(err) {
@@ -356,6 +358,7 @@
                                     document.getElementById('qr-status').innerText = "QR Code erkannt!";
                                     document.getElementById('qr-status').style.backgroundColor = "#4CAF50"; // Hintergrundfarbe grün
                                     document.getElementById('qr-result').innerText = qrCodeMessage;
+                                    document.getElementById('qr-result').style.display = 'block'; // Box anzeigen
                                     html5QrCode.stop().then(() => {
                                         console.log("QR Code scanning stopped.");
                                         document.getElementById('reader').classList.remove('scanning');
