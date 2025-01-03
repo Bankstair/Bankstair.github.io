@@ -317,12 +317,12 @@
                     .then(function(stream) {
                         currentStream = stream;
                         document.getElementById('reader').classList.add('scanning');
-                        const qrboxSize = window.innerWidth < 600 ? { width: 240, height: 180 } : { width: 320, height: 240 };
+                        const qrboxSize = window.innerWidth < 600 ? { width: 200, height: 200 } : { width: 320, height: 240 };
                         if (!isScanning) {
                             html5QrCode.start(
                                 { deviceId: { exact: cameraId } },
                                 {
-                                    fps: 15,    // frames per second
+                                    fps: 10,    // frames per second
                                     qrbox: qrboxSize,
                                     aspectRatio: 1.3333 // aspect ratio (4:3)
                                 },
