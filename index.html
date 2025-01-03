@@ -197,7 +197,14 @@
             function openSpotifyApp(url) {
                 const isSpotifyUrl = url.startsWith("https://open.spotify.com/") || url.startsWith("spotify:");
                 if (isSpotifyUrl) {
-                    window.location.href = url;
+                    // Versuche die Spotify-App zu öffnen
+                    const spotifyAppUrl = url.replace("https://open.spotify.com/", "spotify:").replace("/", ":");
+                    window.location.href = spotifyAppUrl;
+
+                    // Fallback zu Web-URL, falls die App nicht geöffnet werden kann
+                    setTimeout(() => {
+                        window.location.href = url;
+                    }, 500);
                 } else {
                     alert("Kein gültiger Spotify-Link erkannt.");
                     console.warn("Invalid Spotify URL:", url);
