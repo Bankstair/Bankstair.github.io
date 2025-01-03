@@ -130,6 +130,7 @@
         #qr-status {
             background-color: #FF0000; /* Hintergrundfarbe rot */
             transition: background-color 0.3s ease-in-out;
+            margin-bottom: 1rem; /* Abstand nach unten */
         }
 
         #qr-result {
@@ -190,14 +191,16 @@
         <h1>Listenfy/Banko</h1>
     </header>
     <main>
+        <!-- Schaltfläche zum Anzeigen des QR-Code-Status -->
+        <button id="qr-status" style="display: none;">QR Code Status</button>
         <!-- Video Container -->
         <div id="reader"></div>
         <!-- Kameraauswahl Dropdown -->
         <select id="camera-selection" aria-label="Auswahl der Kamera" style="display: none;"></select>
+        <!-- Schaltfläche zum Bestätigen des Kamerazugriffs -->
+        <button id="confirm-camera-access" aria-label="Kamerazugriff bestätigen" style="display: none;">Kamerazugriff bestätigen</button>
         <!-- Schaltfläche zum Starten der Kamera -->
         <button id="start-camera" aria-label="Starte die Kamera für QR-Code Scanning">Kamera starten</button>
-        <!-- Schaltfläche zum Anzeigen des QR-Code-Status -->
-        <button id="qr-status" style="display: none;">QR Code Status</button>
         <!-- Box zum Anzeigen der erkannten URL -->
         <div id="qr-result" style="display: none;"></div>
         <!-- Schaltfläche zum Öffnen der Spotify-App -->
@@ -262,11 +265,28 @@
             });
 
             document.getElementById('start-camera').addEventListener('click', function() {
-                document.getElementById('camera-selection').style.display = 'block';
-                document.getElementById('qr-status').style.display = 'block';
-                document.getElementById('qr-result').style.display = 'block';
-                console.log("Starting camera...");
+                document.getElementById('confirm-camera-access').style.display = 'block';
+                document.getElementById('start-camera').style.display = 'none';
+            });
 
+            document.getElementById('confirm-camera-access').addEventListener('click', function() {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(function(stream) {
+                        // Kamera-Zugriff erfolgreich
+                        stopMediaTracks(stream);
+                        document.getElementById('confirm-camera-access').style.display = 'none';
+                        document.getElementById('camera-selection').style.display = 'block';
+                        document.getElementById('qr-status').style.display = 'block';
+                        document.getElementById('qr-result').style.display = 'block';
+                        startQrCodeScanner();
+                    })
+                    .catch(function(err) {
+                        alert('Kamera-Zugriff verweigert.');
+                        console.error(`Kamera-Fehler: ${err}`);
+                    });
+            });
+
+            function startQrCodeScanner() {
                 navigator.mediaDevices.getUserMedia({ video: true })
                     .then(function(stream) {
                         console.log("Kamera erfolgreich gestartet");
@@ -291,16 +311,16 @@
                                     stopMediaTracks(currentStream);
                                     if (isScanning) {
                                         html5QrCode.stop().then(() => {
-                                            startQrCodeScanner(selectedCameraId);
+                                            startQrCodeScannerWithCamera(selectedCameraId);
                                         }).catch(err => {
                                             console.error(`Unable to stop QR code scanning, error: ${err}`);
                                         });
                                         isScanning = false;
                                     } else {
-                                        startQrCodeScanner(selectedCameraId);
+                                        startQrCodeScannerWithCamera(selectedCameraId);
                                     }
                                 } else {
-                                    startQrCodeScanner(selectedCameraId);
+                                    startQrCodeScannerWithCamera(selectedCameraId);
                                 }
                             });
 
@@ -314,9 +334,9 @@
                         alert('Keine Kamera gefunden oder Zugriff verweigert. Bitte überprüfen Sie Ihre Geräteeinstellungen.');
                         console.error(`Kamera-Fehler: ${err}`);
                     });
-            });
+            }
 
-            function startQrCodeScanner(cameraId) {
+            function startQrCodeScannerWithCamera(cameraId) {
                 navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: cameraId } } })
                     .then(function(stream) {
                         currentStream = stream;
@@ -380,7 +400,7 @@
                     // Tab wird wieder sichtbar, Kamera starten
                     const selectedCameraId = document.getElementById("camera-selection").value;
                     if (selectedCameraId) {
-                        startQrCodeScanner(selectedCameraId);
+                        startQrCodeScannerWithCamera(selectedCameraId);
                     }
                 }
             });
