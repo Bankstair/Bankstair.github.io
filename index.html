@@ -236,6 +236,8 @@
 
                 setTimeout(() => {
                     window.open(url, '_blank');
+                    window.focus();
+                    document.getElementById('start-camera').click();
                 }, 1000);
             }
 
@@ -255,6 +257,8 @@
                     // Fallback zu Web-URL
                     setTimeout(() => {
                         window.open("https://open.spotify.com/", '_blank');
+                        window.focus();
+                        document.getElementById('start-camera').click();
                     }, 500);
                 } catch (err) {
                     console.error("Fehler beim Öffnen der Spotify-App:", err);
