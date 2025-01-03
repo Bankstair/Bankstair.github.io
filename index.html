@@ -53,9 +53,13 @@
         #reader {
             width: 320px; /* Breite des Video-Fensters */
             height: 240px; /* Höhe des Video-Fensters */
-            border: 2px solid red; /* Roter Rahmen um das Video-Fenster */
+            border: 2px solid black; /* Standard schwarzer Rahmen */
             margin-top: 1rem; /* Abstand nach oben */
             position: relative;
+        }
+
+        #reader.scanning {
+            border-color: red; /* Roter Rahmen wenn QR-Code-Scanner aktiv ist */
         }
 
         #reader video {
@@ -97,10 +101,17 @@
         #camera-selection {
             margin-top: 1rem; /* Abstand nach oben */
             align-self: flex-end; /* Rechtsbündig */
+            padding: 0.5rem;
+            font-size: 1rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #ffffff;
+            color: #000;
         }
 
         #qr-status {
             background-color: #FF0000; /* Hintergrundfarbe rot */
+            transition: background-color 0.3s ease-in-out;
         }
 
         /* Media Queries für mobile Ansicht */
@@ -136,7 +147,7 @@
         <!-- Kameraauswahl Dropdown -->
         <select id="camera-selection" style="display: none;"></select>
         <!-- Schaltfläche zum Starten der Kamera -->
-        <button id="start-camera">Kamera starten</button>
+        <button id="start-camera" aria-label="Kamera starten">Kamera starten</button>
         <!-- Schaltfläche zum Anzeigen des QR-Code-Status -->
         <button id="qr-status" style="display: none;">QR Code Status</button>
     </main>
@@ -151,7 +162,8 @@
                     .then(function(registration) {
                         console.log('Service Worker registered with scope:', registration.scope);
                     }).catch(function(error) {
-                        console.log('Service Worker registration failed:', error);
+                        console.error('Service Worker registration failed:', error.message);
+                        alert('Service Worker konnte nicht registriert werden.');
                     });
             }
 
@@ -168,12 +180,12 @@
             }
 
             function openSpotifyApp(url) {
-                // Check if the URL is a Spotify URL
-                if (url.startsWith("https://open.spotify.com/") || url.startsWith("spotify:")) {
-                    // Open the Spotify app
+                const isSpotifyUrl = url.startsWith("https://open.spotify.com/") || url.startsWith("spotify:");
+                if (isSpotifyUrl) {
                     window.location.href = url;
                 } else {
-                    console.warn("Not a Spotify URL.");
+                    alert("Kein gültiger Spotify-Link erkannt.");
+                    console.warn("Invalid Spotify URL:", url);
                 }
             }
 
@@ -220,6 +232,7 @@
                     })
                     .catch(function(err) {
                         console.error(`Error getting cameras: ${err}`);
+                        alert('Kamera-Zugriff verweigert oder nicht verfügbar.');
                     });
             });
 
@@ -227,15 +240,20 @@
                 navigator.mediaDevices.getUserMedia({ video: { deviceId: { exact: cameraId } } })
                     .then(function(stream) {
                         currentStream = stream;
+                        document.getElementById('reader').classList.add('scanning');
+                        const qrboxSize = window.innerWidth < 600 ? { width: 240, height: 180 } : { width: 320, height: 240 };
                         html5QrCode.start(
                             { deviceId: { exact: cameraId } },
                             {
                                 fps: 15,    // frames per second
-                                qrbox: { width: 320, height: 240 },  // scanning box size
+                                qrbox: qrboxSize,
                                 aspectRatio: 1.3333 // aspect ratio (4:3)
                             },
                             qrCodeMessage => {
                                 const currentTime = new Date().getTime();
+                                if (currentTime - lastScannedTime < 2000) {
+                                    return; // Verhindert doppelte Verarbeitung innerhalb von 2 Sekunden
+                                }
                                 console.log(`QR Code detected: ${qrCodeMessage}`);
                                 document.getElementById('qr-status').innerText = "QR Code erkannt!";
                                 document.getElementById('qr-status').style.backgroundColor = "#4CAF50"; // Hintergrundfarbe grün
@@ -249,10 +267,12 @@
                             })
                             .catch(err => {
                                 console.error(`Unable to start QR code scanning, error: ${err}`);
+                                document.getElementById('reader').classList.remove('scanning');
                             });
                     })
                     .catch(function(err) {
                         console.error(`Unable to start camera, error: ${err}`);
+                        alert('Kamera-Zugriff verweigert oder nicht verfügbar.');
                     });
             }
         });
